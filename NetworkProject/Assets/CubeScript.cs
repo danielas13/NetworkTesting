@@ -23,13 +23,22 @@ public class CubeScript : NetworkBehaviour
 	{
 		if (isLocalPlayer)
 		{
-			/*		KeyCode[] arrowKeys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.RightArrow, KeyCode.LeftArrow };
-					foreach (KeyCode arrowKey in arrowKeys)
-					{
-						if (!Input.GetKeyDown(arrowKey)) continue;
-						(arrowKey);
-					} */
-			CmdMoveOnServer();
+			if (Input.GetKey(KeyCode.LeftArrow))
+			{
+				CmdMoveOnServer(KeyCode.LeftArrow);
+			}
+			if (Input.GetKey(KeyCode.RightArrow))
+			{
+				CmdMoveOnServer(KeyCode.RightArrow);
+			}
+			if (Input.GetKey(KeyCode.UpArrow))
+			{
+				CmdMoveOnServer(KeyCode.UpArrow);
+			}
+			if (Input.GetKey(KeyCode.DownArrow))
+			{
+				CmdMoveOnServer(KeyCode.DownArrow);
+			}
 		}
 		SyncState();
 	}
@@ -44,9 +53,9 @@ public class CubeScript : NetworkBehaviour
 	}
 
 	[Command]
-	void CmdMoveOnServer()
+	void CmdMoveOnServer(KeyCode arrowKey)
 	{
-		state = Move();
+		state = Move(state, arrowKey);
 	}
 
 	void SyncState()
@@ -55,28 +64,10 @@ public class CubeScript : NetworkBehaviour
 	}
 
 
-	CubeState Move()
+	CubeState Move(CubeState previous, KeyCode arrowKey)
 	{
 		int dx = 0;
 		int dy = 0;
-
-		if (Input.GetKey(KeyCode.LeftArrow))
-		{
-			dx -= 1;
-		}
-		if (Input.GetKey(KeyCode.RightArrow))
-		{
-			dx += 1;
-		}
-		if (Input.GetKey(KeyCode.UpArrow))
-		{
-			dy += 1;
-		}
-		if (Input.GetKey(KeyCode.DownArrow))
-		{
-			dy -= 1;
-		}
-		/*
 		switch (arrowKey)
 		{
 			case KeyCode.UpArrow:
@@ -92,67 +83,161 @@ public class CubeScript : NetworkBehaviour
 				dx = -1;
 				break;
 		}
-		*/
 		return new CubeState
 		{
-			x = dx * Time.deltaTime + state.x,
-			y = dy * Time.deltaTime + state.y
+			x = dx*Time.deltaTime + previous.x,
+			y = dy*Time.deltaTime + previous.y
 		};
 	}
-	/*
-	int moveX = 0;
-	int moveY = 0;
-	float moveSpeed = 0.2f;
-
-	void Update()
-	{
-		if (!isLocalPlayer)
+		/*
+		struct CubeState
 		{
-			return;
+			public float x;
+			public float y;
 		}
 
-		// input handling for local player only
-		int oldMoveX = moveX;
-		int oldMoveY = moveY;
+		[SyncVar]
+		CubeState state;
 
-		moveX = 0;
-		moveY = 0;
+		void Awake()
+		{
+			InitState();
+		}
 
-		if (Input.GetKey(KeyCode.LeftArrow))
+		void Update()
 		{
-			moveX -= 1;
+			if (isLocalPlayer)
+			{
+				/*		KeyCode[] arrowKeys = { KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.RightArrow, KeyCode.LeftArrow };
+						foreach (KeyCode arrowKey in arrowKeys)
+						{
+							if (!Input.GetKeyDown(arrowKey)) continue;
+							(arrowKey);
+						} * /
+				CmdMoveOnServer();
+			}
+			SyncState();
 		}
-		if (Input.GetKey(KeyCode.RightArrow))
+		[Server]
+		void InitState()
 		{
-			moveX += 1;
+			state = new CubeState
+			{
+				x = 0,
+				y = 0
+			};
 		}
-		if (Input.GetKey(KeyCode.UpArrow))
+
+		[Command]
+		void CmdMoveOnServer()
 		{
-			moveY += 1;
+			state = Move(state);
 		}
-		if (Input.GetKey(KeyCode.DownArrow))
+
+		void SyncState()
 		{
-			moveY -= 1;
+			transform.position = new Vector2(state.x, state.y);
 		}
-		if (moveX != oldMoveX || moveY != oldMoveY)
+
+
+		CubeState Move(CubeState previous)
 		{
-			CmdMove(moveX, moveY);
+			int dx = 0;
+			int dy = 0;
+
+			if (Input.GetKey(KeyCode.LeftArrow))
+			{
+				dx -= 2;
+			}
+			if (Input.GetKey(KeyCode.RightArrow))
+			{
+				dx += 2;
+			}
+			if (Input.GetKey(KeyCode.UpArrow))
+			{
+				dy += 2;
+			}
+			if (Input.GetKey(KeyCode.DownArrow))
+			{
+				dy -= 2;
+			}
+			/*
+			switch (arrowKey)
+			{
+				case KeyCode.UpArrow:
+					dy = 1;
+					break;
+				case KeyCode.DownArrow:
+					dy = -1;
+					break;
+				case KeyCode.RightArrow:
+					dx = 1;
+					break;
+				case KeyCode.LeftArrow:
+					dx = -1;
+					break;
+			}
+			* /
+			return new CubeState
+			{
+				x = dx + previous.x,
+				y = dy + previous.y
+			};
+		}*/
+		/*
+		int moveX = 0;
+		int moveY = 0;
+		float moveSpeed = 0.2f;
+
+		void Update()
+		{
+			if (!isLocalPlayer)
+			{
+				return;
+			}
+
+			// input handling for local player only
+			int oldMoveX = moveX;
+			int oldMoveY = moveY;
+
+			moveX = 0;
+			moveY = 0;
+
+			if (Input.GetKey(KeyCode.LeftArrow))
+			{
+				moveX -= 1;
+			}
+			if (Input.GetKey(KeyCode.RightArrow))
+			{
+				moveX += 1;
+			}
+			if (Input.GetKey(KeyCode.UpArrow))
+			{
+				moveY += 1;
+			}
+			if (Input.GetKey(KeyCode.DownArrow))
+			{
+				moveY -= 1;
+			}
+			if (moveX != oldMoveX || moveY != oldMoveY)
+			{
+				CmdMove(moveX, moveY);
+			}
 		}
+
+		[Command]
+		public void CmdMove(int x, int y)
+		{
+			moveX = x;
+			moveY = y;
+			//isDirty = true;
+		}
+
+		public void FixedUpdate()
+		{
+			if (NetworkServer.active)
+			{
+				transform.Translate(moveX * moveSpeed, moveY * moveSpeed, 0);
+			}
+		}*/
 	}
-
-	[Command]
-	public void CmdMove(int x, int y)
-	{
-		moveX = x;
-		moveY = y;
-		//isDirty = true;
-	}
-
-	public void FixedUpdate()
-	{
-		if (NetworkServer.active)
-		{
-			transform.Translate(moveX * moveSpeed, moveY * moveSpeed, 0);
-		}
-	}*/
-}
